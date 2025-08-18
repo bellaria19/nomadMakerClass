@@ -1,29 +1,140 @@
+import { DateTime } from "luxon";
 import type { Route } from "./+types/monthly-leaderboard-page";
+import { data, isRouteErrorResponse, Link } from "react-router";
+import { z } from "zod";
+import { Hero } from "~/components/hero-section";
+import { ProductCard } from "~/features/products/components/product-card";
+import { Button } from "~/components/ui/button";
+import ProductPagination from "~/components/product-pagination";
 
-export const meta: Route.MetaFunction = () => [
+// loaderData is return value of loader function
+export const meta: Route.MetaFunction = ({ params, loaderData }) => [
   { title: "Monthly Leaderboard | wemake" },
-  { name: "description", content: "Top products this month" },
+  // { name: "description", content: "Top products today" },
 ];
 
-export function loader({ params }: Route.LoaderArgs) {
-  const { year, month } = params;
-  return { year, month };
-}
+const paramsSchema = z.object({
+  year: z.coerce.number(),
+  month: z.coerce.number(),
+});
 
-export async function action({ request }: Route.ActionArgs) {
-  return { ok: true };
+export function loader({ params }: Route.LoaderArgs) {
+  const { success, data: parsedData } = paramsSchema.safeParse(params);
+  if (!success) {
+    throw data(
+      {
+        error_code: "invalid_params",
+        message: "Invalid params",
+      },
+      400
+    );
+  }
+  const date = DateTime.fromObject({
+    year: parsedData.year,
+    month: parsedData.month,
+  }).setZone("Asia/Seoul");
+
+  if (!date.isValid) {
+    // throw new Error("Invalid date");
+    throw data(
+      {
+        error_code: "invalid_date",
+        message: "Invalid date",
+      },
+      400
+    );
+  }
+
+  const today = DateTime.now().setZone("Asia/Seoul").startOf("month");
+  if (date > today) {
+    throw data(
+      {
+        error_code: "future_date",
+        message: "future date",
+      },
+      400
+    );
+  }
+  return { ...parsedData };
 }
 
 export default function MonthlyLeaderboardPage({
   loaderData,
 }: Route.ComponentProps) {
-  const { year, month } = loaderData as { year?: string; month?: string };
+  const urlDate = DateTime.fromObject({
+    year: loaderData.year,
+    month: loaderData.month,
+  });
+
+  const previousMonth = urlDate.minus({ months: 1 });
+  const nextMonth = urlDate.plus({ months: 1 });
+  const isToday = urlDate.equals(DateTime.now().startOf("month"));
+
   return (
-    <div className="container mx-auto px-6 space-y-4">
-      <h1 className="text-3xl font-bold">Monthly Leaderboard</h1>
-      <p className="text-muted-foreground">
-        {year}-{month}
-      </p>
+    <div className="space-y-10">
+      <Hero
+        title={`Best of ${urlDate.toLocaleString({ month: "long", year: "2-digit" })}`}
+        description={""}
+      />
+
+      <div className="flex justify-between items-center w-full max-w-screen-md mx-auto px-4 ">
+        <Button variant="outline" asChild>
+          <Link
+            to={`/products/leaderboards/monthly/${previousMonth.year}/${previousMonth.month}`}
+          >
+            &larr;{" "}
+            {previousMonth.toLocaleString({ month: "long", year: "2-digit" })}
+          </Link>
+        </Button>
+
+        <span className="text-sm text-muted-foreground">
+          {urlDate.toLocaleString({ month: "long", year: "2-digit" })}
+        </span>
+
+        <Button
+          variant="outline"
+          asChild
+          disabled={isToday}
+          className={isToday ? "opacity-50" : ""}
+        >
+          <Link
+            to={`/products/leaderboards/monthly/${nextMonth.year}/${nextMonth.month}`}
+          >
+            {nextMonth.toLocaleString({ month: "long", year: "2-digit" })}{" "}
+            &rarr;
+          </Link>
+        </Button>
+      </div>
+
+      <div className="space-y-5 w-full max-w-screen-md mx-auto">
+        {Array.from({ length: 11 }).map((_, index) => (
+          <ProductCard
+            key={`productId-${index}`}
+            id={`productId-${index}`}
+            name="Product Name"
+            description="Product Description"
+            commentCount={12}
+            viewCount={12}
+            upvoteCount={0}
+          />
+        ))}
+      </div>
+
+      <ProductPagination totalPages={10} />
     </div>
   );
+}
+
+export function ErrorBoundary({ error }: Route.ErrorBoundaryProps) {
+  if (isRouteErrorResponse(error)) {
+    return (
+      <div>
+        {error.data.message} / {error.data.error_code}
+      </div>
+    );
+  }
+  if (error instanceof Error) {
+    return <div>{error.message}</div>;
+  }
+  return <div>Error in leaderboard</div>;
 }
