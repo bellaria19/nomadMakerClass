@@ -1,5 +1,6 @@
-import { Link } from "react-router";
 import type { Route } from "./+types/categories-page";
+import { Hero } from "~/components/hero-section";
+import { CategoryCard } from "~/features/products/components/category-card";
 
 export const meta: Route.MetaFunction = () => [
   { title: "Product Categories | wemake" },
@@ -8,12 +9,12 @@ export const meta: Route.MetaFunction = () => [
 
 export function loader({ request }: Route.LoaderArgs) {
   const categories = [
-    "Productivity",
-    "AI",
-    "Developer Tools",
-    "Design",
-    "Marketing",
-    "Education",
+    { id: "productivity", name: "Productivity", description: "Tools to boost your productivity" },
+    { id: "ai", name: "AI", description: "Artificial intelligence powered solutions" },
+    { id: "developer-tools", name: "Developer Tools", description: "Essential tools for developers" },
+    { id: "design", name: "Design", description: "Creative design and UI/UX tools" },
+    { id: "marketing", name: "Marketing", description: "Marketing and growth tools" },
+    { id: "education", name: "Education", description: "Learning and educational resources" },
   ];
   return { categories };
 }
@@ -23,22 +24,20 @@ export async function action({ request }: Route.ActionArgs) {
 }
 
 export default function CategoriesPage({ loaderData }: Route.ComponentProps) {
-  const { categories } = loaderData as { categories: string[] };
   return (
-    <div className="container mx-auto px-6 space-y-4">
-      <h1 className="text-3xl font-bold">Categories</h1>
-      <ul className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-3">
-        {categories.map((category) => (
-          <li key={category} className="">
-            <Link
-              className="underline"
-              to={`/products/categories/${encodeURIComponent(category)}`}
-            >
-              {category}
-            </Link>
-          </li>
+    <div className="space-y-10">
+      <Hero title="Categories" description="Browse products by category" />
+
+      <div className="grid grid-cols-4 gap-10">
+        {loaderData.categories.map((category) => (
+          <CategoryCard
+            key={category.id}
+            id={category.id}
+            name={category.name}
+            description={category.description}
+          />
         ))}
-      </ul>
+      </div>
     </div>
   );
 }
