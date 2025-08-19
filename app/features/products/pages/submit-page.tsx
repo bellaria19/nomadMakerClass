@@ -14,6 +14,8 @@ import {
   SelectValue,
 } from "~/components/ui/select";
 import SelectPair from "~/components/select-pair";
+import { useState } from "react";
+import { Button } from "~/components/ui/button";
 
 export const meta: Route.MetaFunction = () => [
   { title: "Submit Product | wemake" },
@@ -21,6 +23,14 @@ export const meta: Route.MetaFunction = () => [
 ];
 
 export default function SubmitPage() {
+  const [icon, setIcon] = useState<string | null>();
+  const onChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    if (e.target.files) {
+      const file = e.target.files[0];
+      setIcon(URL.createObjectURL(file));
+    }
+  };
+
   return (
     <div className="space-y-10">
       <Hero
@@ -85,6 +95,46 @@ export default function SubmitPage() {
                 { label: "Development", value: "development" },
               ]}
             />
+            <Button type="submit" className="w-full" size="lg">
+              Submit
+            </Button>
+          </div>
+
+          <div className="flex flex-col space-y-3">
+            <div className="size-40 rounded-xl shadow-xl overflow-hidden">
+              {icon ? (
+                <img
+                  src={icon}
+                  alt="icon"
+                  className="object-cover w-full h-full"
+                />
+              ) : null}
+            </div>
+            <Label className="flec flex-col items-start gap-1 ">
+              Icon{" "}
+              <small className="text-muted-foreground">
+                This is the icon of your product.
+              </small>
+            </Label>
+
+            <Input
+              type="file"
+              className="w-1/2"
+              onChange={onChange}
+              required
+              name="icon"
+            />
+            <div className="flex flex-col text-sm">
+              <span className="text-muted-foreground">
+                Recommend size: 128 x 128px
+              </span>
+
+              <span className="text-muted-foreground">
+                Allowed format: PNG, JPEG
+              </span>
+
+              <span className="text-muted-foreground">Max file size: 1MB</span>
+            </div>
           </div>
         </div>
       </Form>
