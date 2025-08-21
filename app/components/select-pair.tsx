@@ -33,7 +33,7 @@ export default function SelectPair({
   return (
     <div className="space-y-2 flex flex-col">
       <Label
-        className="flex flex-col items-start"
+        className="flex flex-col items-start gap-1"
         onClick={() => setOpen(true)}
       >
         {label}
@@ -45,7 +45,7 @@ export default function SelectPair({
         name={name}
         required={required}
       >
-        <SelectTrigger>
+        <SelectTrigger className="w-full">
           <SelectValue placeholder={placeholder} />
         </SelectTrigger>
         <SelectContent>
