@@ -1,5 +1,5 @@
 import { Hero } from "~/components/hero-section";
-import type { Route } from "./+types/submit-page";
+import type { Route } from "./+types/submit-product-page";
 import { Form } from "react-router";
 import { Label } from "~/components/ui/label";
 import { Input } from "~/components/ui/input";
@@ -22,7 +22,7 @@ export const meta: Route.MetaFunction = () => [
   { name: "description", content: "Submit your product to wemake" },
 ];
 
-export default function SubmitPage() {
+export default function SubmitProductPage() {
   const [icon, setIcon] = useState<string | null>();
   const onChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     if (e.target.files) {
